@@ -12,6 +12,7 @@ var github = require('octonode');
 var qs = require('querystring');
 var url = require('url');
 var Cookies = require('cookies');
+var fs = require("fs");
 //var less = require('less');
 
 // Database connection. Modify conString for your own local copy
@@ -123,13 +124,79 @@ app.use(function(req, res, next){
 app.get('/', function(req, res) {
   var cookies = new Cookies( req, res);
   if (cookies.get("token")){
-    console.log("Logged in!");
+    //console.log("Logged in!");
+
+    var token = cookies.get("token");
+    var client = github.client(token);
+    var ghme = client.me();
+
+    // set up for multiple calls finishing
+    var res1, res2, res3, res4, done = 0;
+
+    ghme.followers(function( err, data, headers){
+      if(err) handle_data(err, null, null, null, null);
+      res1 = data;
+      done++;
+      if ( done === 4 ) 
+        handle_data(null, res1, res2, res3, res4);
+    });
+
+    ghme.following(function( err, data, headers){
+      if(err) handle_data(err, null, null, null, null);
+      res2 = data;
+      done++;
+      if ( done === 4 ) 
+        handle_data(null, res1, res2, res3, res4);
+    });
+
+    ghme.starred(function( err, data, headers){
+      if(err) handle_data(err, null, null, null, null);
+      res3 = data;
+      done++;
+      if ( done === 4 ) 
+        handle_data(null, res1, res2, res3, res4);
+    });
+
+    ghme.repos(function( err, data, headers){
+      if(err) handle_data(err, null, null, null, null);
+      res4 = data;
+      done++;
+      if ( done === 4 ) 
+        handle_data(null, res1, res2, res3, res4);
+    });
+
+    function handle_data(err, res1, res2, res3, res4) {
+      if(err) {
+        console.log("There was an error in the handle_data function");
+        return;
+      } 
+
+      // all the data has finished loading 
+      // put it in a thing
+      var inputData = {};
+      inputData.followers = res1;
+      inputData.following = res2;
+      inputData.starred = res3;
+      inputData.repos = res4;
+
+      console.log(res1);
+      console.log(res2);
+      console.log(res3);
+      console.log(res4);
+
+      
+
+      
+
+    }
+    
+
   } else {
     console.log("Not logged in!");
   }
 
 
-  res.render('index');
+  //res.render('index');
 });
 
 
