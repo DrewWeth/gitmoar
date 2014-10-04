@@ -9,10 +9,23 @@ var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
 var passport = require('passport');
+var github = require('octonode');
+var qs = require('querystring');
+var url = require('url');
+var Cookies = require('cookies');
 //var less = require('less');
 
 // Database connection. Modify conString for your own local copy
 var conString = "";
+
+// Build the authorization config and url
+var auth_url = github.auth.config({
+  id: '4ff4888698512a1a4bc7',
+  secret: '42cd0241af8d9f6fd548403951c6a4d1f38d4654'
+}).login(['user', 'repo', 'gist']);
+
+// Store info to verify against CSRF
+var state = auth_url.match(/&state=([0-9a-z]{32})/i);
 
 
 var app = express();
@@ -54,13 +67,46 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-app.get('/', routes.index);
+//app.get('/', routes.index);
 app.get('/users', user.list);
-app.post('/login', passport.authenticate('local', {
+/*app.post('/login', passport.authenticate('local', {
 	successRedirect: '/',
 	failureRedirect: '/login',
 	failureFlash: true})
-);
+);*/
+
+// redirect to github login 
+app.get('/login', function(req, res){
+  res.writeHead(301, {'Content-Type': 'text/plain', 'Location': auth_url});
+  res.end('Redirecting to ' + auth_url);
+});
+
+app.get('/auth', function(req, res){
+  var cookies = new Cookies( req, res);
+  uri = url.parse(req.url);
+  var values = qs.parse(uri.query);
+  // Check against CSRF attacks
+  if (!state || state[1] != values.state) {
+    res.writeHead(403, {'Content-Type': 'text/plain'});
+    res.end('fail 403');
+  } else {
+    github.auth.login(values.code, function (err, token) {
+      cookies.set('token', token); // write the token as a cookie
+      res.writeHead(200, {'Content-Type': 'text/plain'});
+      //res.end(token);
+      res.end("authenticated!");
+    });
+  }
+});
+
+//test the cookies
+app.get('/cookies', function(req, res){
+  var cookies = new Cookies( req, res);
+  res.setHeader('Content-Type', 'application/json');
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  var token = cookies.get("token");
+  res.end(token);
+});
 
 //Start of GET/POST pages
 
@@ -73,7 +119,17 @@ app.use(function(req, res, next){
   }
 });
 
+// main logic goes here
+
 app.get('/', function(req, res) {
+  var cookies = new Cookies( req, res);
+  if (cookies.get("token")){
+    console.log("Logged in!");
+  } else {
+    console.log("Not logged in!");
+  }
+
+
   res.render('index');
 });
 
@@ -90,6 +146,7 @@ app.get('/tables', function(req, res) {
 }); 
 
 http.createServer(app).listen(app.get('port'), function(){
+
   console.log('Express server listening on port ' + app.get('port'));
 });
 

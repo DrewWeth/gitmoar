@@ -1,5 +1,4 @@
 {
-  "name": "Get-Political",
   "name": "Get_Political",
   "version": "0.0.1",
   "private": true,
@@ -7,8 +6,11 @@
     "start": "node app.js"
   },
   "dependencies": {
+    "cookie": "^0.1.2",
+    "cookies": "^0.5.0",
     "express": "3.4.8",
     "jade": "*",
-    "less-middleware": "*"
+    "less-middleware": "*",
+    "octonode": "^0.6.7"
   }
 }
