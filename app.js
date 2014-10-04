@@ -297,6 +297,7 @@ app.get('/follow', function(req, res){
   var client = github.client(token);
   var ghme = client.me();
   ghme.follow(query.user);
+  res.end();
 
 
 });
@@ -308,8 +309,9 @@ app.get('/star', function(req, res){
   var token = req.session.auth_token;
   var client = github.client(token);
   var ghme = client.me();
-  ghme.follow(query.repo);
-  
+  console.log(query.repo);
+  ghme.star(query.repo);
+  res.end();
 
 });
 
