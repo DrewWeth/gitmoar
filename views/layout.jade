@@ -25,9 +25,10 @@ html
     script(src='/js/plugins/dataTables/jquery.dataTables.js')
     script(src='/js/plugins/dataTables/dataTables.bootstrap.js')
     script(src='/js/main.js')
+    script(src='/js/more.js')
   body
     #wrapper
-      nav.navbar.navbar-default.navbar-static-top(role='navigation', style='margin-bottom: 0;')
+      nav.navbar.navbar-default.navbar-static-top#top-nav(role='navigation', style='margin-bottom: 0;')
         .navbar-header
           button.navbar-toggle(type='button', data-toggle='collapse', data-target='.sidebar-collapse')
             span.sr-only Toggle navigation
@@ -94,4 +95,12 @@ html
               a(href='/account/')
                 i.fa.fa-list.fa-fw
                 |  Account
+            li
+              a(href='/account/')
+                i.fa.fa-list.fa-fw
+                |  Trending
+            li
+              a(href='/account/')
+                i.fa.fa-list.fa-fw
+                |  Your Web
     block content

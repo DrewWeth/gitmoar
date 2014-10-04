@@ -2,7 +2,6 @@
 /**
  * Module dependencies.
  */
-
 var express = require('express');
 var routes = require('./routes');
 var user = require('./routes/user');
@@ -78,6 +77,17 @@ app.get('/', function(req, res) {
 });
 
 
+app.get('/searching', function(req, res) {
+  var lname = req.query.search;
+  console.log(lname);
+  
+  res.render('search');
+});
+
+app.get('/more', function(req, res){
+  var html= '<li class="list-group-item">Name<i class="pull-right fa fa-star"></i></li>';
+  res.send(html);
+});
 
 
 app.get('/random', function(req, res){
