@@ -12,8 +12,9 @@ var github = require('octonode');
 var qs = require('querystring');
 var url = require('url');
 var Cookies = require('cookies');
-var fs = require("fs");
-//var less = require('less');
+var fs = require('fs');
+var _ = require('underscore-node');
+//var less = requestire('less');
 
 // Database connection. Modify conString for your own local copy
 var conString = "";
@@ -167,6 +168,7 @@ app.get('/', function(req, res) {
     function handle_data(err, res1, res2, res3, res4) {
       if(err) {
         console.log("There was an error in the handle_data function");
+        console.log(err);
         return;
       } 
 
@@ -178,10 +180,31 @@ app.get('/', function(req, res) {
       inputData.starred = res3;
       inputData.repos = res4;
 
-      console.log(res1);
+      fs.writeFile("test.json", JSON.stringify(inputData), function(err, written, buffer){
+        if(err) {
+          console.log("There was an error in the writing file function");
+          console.log(err);
+          return;
+        } 
+      });
+
+      var combined = {};
+
+      for( var i, len = inputData.followers.length; i < len; i++){
+        combined[inputData.followers[i].id] = inputData.followers[i];
+      }
+
+      for( var i, len = inputData.following.length; i < len; i++){
+        combined[inputData.following[i].id] = inputData.following[i];
+      }
+
+       console.log(inputData.following.length);
+      
+
+      /*console.log(res1);
       console.log(res2);
       console.log(res3);
-      console.log(res4);
+      console.log(res4);*/
       
 
     }
