@@ -2,17 +2,18 @@
 /**
  * Module dependencies.
  */
-var express = require('express');
-var routes = require('./routes');
-var user = require('./routes/user');
-var http = require('http');
-var path = require('path');
-var passport = require('passport');
-var github = require('octonode');
-var qs = require('querystring');
-var url = require('url');
-var fs = require("fs");
-var engine = require('ejs-locals');
+ var express = require('express');
+ var routes = require('./routes');
+ var user = require('./routes/user');
+ var http = require('http');
+ var path = require('path');
+ var passport = require('passport');
+ var github = require('octonode');
+ var qs = require('querystring');
+ var url = require('url');
+ var fs = require("fs");
+ var engine = require('ejs-locals');
+ var async = require('async')
 //var less = require('less');
 
 // Database connection. Modify conString for your own local copy
@@ -169,19 +170,65 @@ app.get('/', function(req, res) {
       inputData.starred = res3;
       inputData.repos = res4;
 
-      console.log(res1);
-      console.log(res2);
-      console.log(res3);
-      console.log(res4);
-      
       res.render('index', { token: req.session.auth_token, github_data: inputData});
 
     }
 
-  } else {
-    console.log("Not logged in!");
-    res.render('index', {token: null});
+  } else 
+  {
+    res.redirect('/login');
 
+  }
+
+});
+
+app.get('/repos', function(req, res){
+
+  if (req.session.auth_token){
+    //console.log("Logged in!");
+
+
+    var token = req.session.auth_token;
+    var client = github.client(token);
+    var ghme = client.me();
+
+    var followers = [];
+    var repos = [];
+
+    ghme.followers(function(err, data, headers){
+      followers = data;
+      getFollowing();
+    });
+
+    function getFollowing(){
+      ghme.following(function(err, data, headers){
+        data.forEach(function(f){
+          followers.push(f);
+          console.log("Adding: " + JSON.stringify(f));
+        })
+        getRepos();
+      });
+    };
+
+
+
+    function getRepos(){
+      async.each(followers, function(data, callback){
+        var ghuser = client.user(data["login"]);  
+        console.log("Getting data for " + data["login"]);
+        ghuser.repos(function(err, data, headers){
+          repos.push(data);
+          callback();
+        });
+      }, function(err){
+        done();
+      });
+    }
+
+    function done(){
+      
+      res.render('repos', { token: token, followers: followers, repos: repos})
+    }
   }
 
 });
