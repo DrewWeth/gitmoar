@@ -176,13 +176,13 @@ app.get('/', function(req, res) {
       inputData.starred = res3;
       inputData.repos = res4;
 
-      fs.writeFile("test.json", JSON.stringify(inputData), function(err, written, buffer){
+      /*fs.writeFile("test.json", JSON.stringify(inputData), function(err, written, buffer){
         if(err) {
           console.log("There was an error in the writing file function");
           console.log(err);
           return;
         } 
-      });
+      });*/
 
       var combined = {};
 
