@@ -11,10 +11,10 @@
  var github = require('octonode');
  var qs = require('querystring');
  var url = require('url');
- var fs = require("fs");
  var engine = require('ejs-locals');
- var async = require('async')
-//var less = require('less');
+ var fs = require('fs');
+ var _ = require('underscore-node');
+ var async = require('async');
 
 // Database connection. Modify conString for your own local copy
 var conString = "";
@@ -116,11 +116,16 @@ app.use(function(req, res, next){
 app.get('/', function(req, res) {
   var inputData = {};
   if (req.session.auth_token){
-    //console.log("Logged in!");
+    console.log("Logged in!");
 
     var token = req.session.auth_token;
     var client = github.client(token);
     var ghme = client.me();
+    var me;
+    ghme.info(function(err, data, headers){
+      me = data;
+      //console.log(me);
+    });
 
     // set up for multiple calls finishing
     var res1, res2, res3, res4, done = 0;
@@ -160,6 +165,7 @@ app.get('/', function(req, res) {
     function handle_data(err, res1, res2, res3, res4) {
       if(err) {
         console.log("There was an error in the handle_data function");
+        console.log(err);
         return;
       } 
 
@@ -170,7 +176,104 @@ app.get('/', function(req, res) {
       inputData.starred = res3;
       inputData.repos = res4;
 
-      res.render('index', { token: req.session.auth_token, github_data: inputData});
+      fs.writeFile("test.json", JSON.stringify(inputData), function(err, written, buffer){
+        if(err) {
+          console.log("There was an error in the writing file function");
+          console.log(err);
+          return;
+        } 
+      });
+
+      var combined = {};
+
+      for( var i = 0, len = inputData.followers.length; i < len; i++){
+        combined[inputData.followers[i].id] = inputData.followers[i];
+      }
+
+      for( var i = 0, len = inputData.following.length; i < len; i++){
+        combined[inputData.following[i].id] = inputData.following[i];
+      }
+
+      var combined_array = [];
+      var j = 0;
+
+      for(var key in combined) {
+        if(combined.hasOwnProperty(key)) {
+          combined_array[j] = combined[key];
+          j++;
+        }
+      }
+
+      //console.log(combined);
+
+      var users_pool = {};
+
+      // get the following of each user in the combined
+      // and add them to the users pool
+      async.each(combined_array, function(item, callback){
+        //console.log(item);
+        var ghuser = client.user(item.login);
+        ghuser.following(function(err, data, headers){
+          if(err) {
+            console.log("There was an error in the get followers of followers function");
+            console.log(err);
+            callback(err);
+          } 
+          for(var i = 0, len = data.length; i < len; i++) {
+            users_pool[data[i].id] = data[i];
+          }
+          console.log('Do a callback');
+          callback();
+
+        });
+      }, function(err) {
+        console.log("Got all followers");
+        //console.log(users_pool);
+        //console.log(Object.keys(users_pool).length);
+        get_follower_counts();
+      });
+
+      var users_pool_array = [];
+
+      function get_follower_counts(){
+        
+        var j = 0;
+
+        for(var key in users_pool) {
+          if(users_pool.hasOwnProperty(key)) {
+            users_pool_array[j] = users_pool[key];
+            j++;
+          }
+        }
+
+        async.each(users_pool_array, function(item, callback){
+
+          var ghuser = client.user(item.login);
+          ghuser.following(function(err, data, headers){
+            var num = data.length;
+            item.followers = num;
+            callback();
+          });
+
+        },function(err){
+          console.log("Got all follower counts");
+          function compare(a,b) {
+            if (a.followers > b.followers)
+               return -1;
+            if (a.followers < b.followers)
+              return 1;
+            return 0;
+          }
+
+          users_pool_array.sort(compare);
+          for ( var i = 0, len = users_pool_array.length; i < len; i++ ) {
+            console.log("User: " + users_pool_array[i].login + " followers: " + users_pool_array[i].followers);
+          }
+          res.render('index', { token: req.session.auth_token, github_data: inputData});
+
+        });
+      }
+      
 
     }
 
@@ -182,38 +285,36 @@ app.get('/', function(req, res) {
 
 });
 
-app.get('/repos', function(req, res){
+app.get('/correlations', function(req,res){
+  var token = req.session.auth_token;
+   
+      res.render('correlations', { token: token})
+})
 
-  if (req.session.auth_token){
+app.get('/connections', function(req, res){
+  console.log('What the fuck');
+  if (req.session.auth_token == null){
     //console.log("Logged in!");
+    console.log("Not logged in!");
 
+    res.render('index', {token: null});
+
+  } else {
 
     var token = req.session.auth_token;
     var client = github.client(token);
     var ghme = client.me();
 
-    var followers = [];
+    var network = [];
     var repos = [];
 
-    ghme.followers(function(err, data, headers){
-      followers = data;
-      getFollowing();
-    });
 
-    function getFollowing(){
-      ghme.following(function(err, data, headers){
-        data.forEach(function(f){
-          followers.push(f);
-          console.log("Adding: " + JSON.stringify(f));
-        })
-        getRepos();
-      });
-    };
 
 
 
     function getRepos(){
-      async.each(followers, function(data, callback){
+      async.each(network, function(data, callback){
+
         var ghuser = client.user(data["login"]);  
         console.log("Getting data for " + data["login"]);
         ghuser.repos(function(err, data, headers){
@@ -226,10 +327,34 @@ app.get('/repos', function(req, res){
     }
 
     function done(){
-      
-      res.render('repos', { token: token, followers: followers, repos: repos})
+      console.log('WHAJCBHDJKSCHBSJDKHBCKJSHDBK');
+      res.render('connections', { token: token, followers: followers, repos: repos})
     }
   }
+
+
+});
+
+app.get('/follow', function(req, res){
+
+  var url_parts = url.parse(req.url, true);
+  var query = url_parts.query;
+  var token = req.session.auth_token;
+  var client = github.client(token);
+  var ghme = client.me();
+  ghme.follow(query.user);
+
+});
+
+app.get('/star', function(req, res){
+
+  var url_parts = url.parse(req.url, true);
+  var query = url_parts.query;
+  var token = req.session.auth_token;
+  var client = github.client(token);
+  var ghme = client.me();
+  ghme.follow(query.repo);
+  
 
 });
 

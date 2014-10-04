@@ -1,0 +1,51 @@
+    <%- include header.ejs -%>
+            <div class="row">
+                <div class="col-lg-12">
+                    <h3>Your Network</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+
+                    <% followers.forEach(function(data){ %>
+                    <a href="<%= data["html_url"] %>"><img class="img-circle head-shot" alt="<%= data["login"] %>"  src="<%= data["avatar_url"] %>"></img></a>
+                            
+                    <% }); %>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                <h3>Recommended Repos</h3>
+                </h3>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <h3>Follower's Repos</h3>
+                    <ul class="list-group">
+                    <% repos.forEach(function(data){ %>
+                        <% data.forEach(function(data2){ %>
+                        <li class="list-group-item">
+                            <a href="<%= data2["html_url"] %>"><%= data2["name"] %></a> by <a href="<%= data2.owner.html_url %>"><%= data2.owner.login %></a>
+
+                            
+                            <div class="panel panel-default">
+                            <div class="panel-body">
+                            <span><%= data2.description %></span>
+                            </div>
+                            </div>
+                            <span><%= data2.stargazers_count %> <i class="fa fa-star"></i><span>                            <label class="label label-default"><%= data2.language %></label>
+
+                        </li>
+                    <% }); %>
+                    <% }); %>
+
+                    </ul>
+                </div>
+            </div>
+            <script>
+            </script>
+
+        <%- include footer.ejs -%>

@@ -69,8 +69,6 @@
                             <i class="fa fa-user fa-fw"></i>  <i class="fa fa-caret-down"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-user">
-                            <li><a href="/"><i class="fa fa-user fa-fw"></i> User Profile</a>
-                            </li>
                             <li><a href="/login"><i class="fa fa-gear fa-fw"></i> Login</a>
                             </li>
                             <li class="divider"></li>
@@ -103,19 +101,13 @@
                         <li>
                             <a href="/"><i class="fa fa-dashboard fa-fw"></i> Home</a>
                         </li>
-                        <% if (token == null) { %>
                         <li>
-                            <a href="/login"><i class="fa fa-table fa-fw"></i> Login</a>
-                        </li>
-                        <% } else { %>
-                        <li>
-                            <a href="/logout"><i class="fa fa-wrench fa-fw"></i> Logout</a>
+                            <a href="/connections"><i class="fa fa-table fa-fw"></i> Connections</a>
                         </li>
                         <li>
-                            <a href="/repos"><i class="fa fa-wrench fa-fw"></i> Followers</a>
+                            <a href="/correlations"><i class="fa fa-wrench fa-fw"></i> Correlations</a>
                         </li>
-
-                        <% } %>
+                        
 
                     </ul>
                     <!-- /#side-menu -->
