@@ -1,0 +1,26 @@
+extends layout
+block content
+	#page-wrapper
+		.row
+			.col-lg-12
+				h1.page-header Tables
+		.row
+			.col-lg-12
+				.panel.panel-default
+					.panel-heading
+						p DataTables Advanced Tables
+					// Panel panel-heading
+					.panel-body
+						.table-responsive
+							table.table.table-striped.tabled-bordered.table-hover#dataTables-example
+								thead
+									tr
+										th Rendering engine
+										th Browser
+										th Platform(s)
+										th Engine version
+										th CSS grade
+								tbody
+									tr.odd.gradeX
+										td Trident
+										td Internet Explorer

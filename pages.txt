@@ -1,0 +1,7 @@
+Trivia Page
+-drop down for queries
+
+Top ten 
+
+
+-all finance data that starts with i

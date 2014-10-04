@@ -1,0 +1,14 @@
+extends layout
+block content
+  #page-wrapper
+
+    .row
+      .col-sm-12
+        h1 Search Results
+      table.table(style="max-width:25%;")      
+        tbody
+          -for(var i=0; i<search.rows.length; i++){
+            tr
+              td
+                a(href='/rep_profile/' + search.rows[i].mem_id) #{search.rows[i].f_name} #{search.rows[i].l_name}
+          -}

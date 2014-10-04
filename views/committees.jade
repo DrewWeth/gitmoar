@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  div#page-wrapper
+    div.row
+      div.col-sm-12
+        h1.page-header #{title}
+      .col-sm-6
+        table.table
+          thead
+            tr: th #{title}
+              tbody
+              - for(var i=0; i<committees.rows.length;i++){
+                tr
+                  td
+                    a(href='/committees/' + committees.rows[i].cong_cmte_id) #{committees.rows[i].committee_name}
+            - }

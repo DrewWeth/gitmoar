@@ -1,0 +1,21 @@
+extends layout
+
+block content
+  div#page-wrapper
+    div.row
+      div.col-sm-12
+        h1.page-header #{title}
+      .col-sm-6
+      -if(committees.rows.length == 0)
+        p No Subcommittees available
+      -else{
+        table.table
+          thead
+            tr: th #{title}
+              tbody
+              - for(var i=0; i<committees.rows.length;i++){
+                tr
+                  td
+                    a(href='/committees/'+ committees.rows[i].parent_committee_id + "/"+ committees.rows[i].sub_cmte_id) #{committees.rows[i].sub_cmte_name}
+            - }
+        -}

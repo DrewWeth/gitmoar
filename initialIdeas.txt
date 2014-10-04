@@ -1,0 +1,8 @@
+Hey guys, figured I would put some initial ideas here
+-----------------------------------------------------
+
+* Pharmaceutical drug database - see what drugs are in what products and display common symptoms and other doctor-focused stats (Drew's idea)
+* Pokedex (Nate's idea)
+* Legal cases (Eric's idea)
+
+I'd rather not do a lot of data pruning-- but a cool project might be worth it.

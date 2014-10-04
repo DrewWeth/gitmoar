@@ -1,0 +1,41 @@
+extends layout
+block content
+  #page-wrapper
+      .row
+        .col-sm-12
+          h1.page-header #{rep.f_name} #{rep.l_name}
+          .col-sm-3
+            img.img-responsive(src='http://www.govtrack.us/data/photos/'+ rep.gov_track_id +'.jpeg')
+          .col-sm-6
+            table.table
+              tr
+              -if(rep.gender == 'M')
+                td Gender: Male
+              -else if(rep.gender == 'F')
+                td Gender: Female
+              -else
+                td Gender: Unknown
+              tr
+                td Birth Date: #{rep.birthday}
+              tr
+              -if(rep.religion==null)
+                td Religion: Unknown
+              -else
+                td Religion: #{rep.religion}
+              tr
+                td Party: #{rep.party}
+              tr
+              -if(rep.married)
+                td Married: Yes
+              -else
+                td Married: No
+              tr
+              -if(rep.has_child)
+                td Has Children: Yes
+              -else
+                td Has Children: No
+
+
+
+
+

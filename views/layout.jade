@@ -1,0 +1,97 @@
+doctype
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title Git Moar
+    //
+       Core CSS - Include with every page 
+    link(href='/css/bootstrap.min.css', rel='stylesheet')
+    link(href='/font-awesome/css/font-awesome.css', rel='stylesheet')
+    //
+       Page-Level Plugin CSS - Dashboard 
+    link(href='/css/plugins/morris/morris-0.4.3.min.css', rel='stylesheet')
+    link(href='/css/plugins/timeline/timeline.css', rel='stylesheet')
+    //
+       SB Admin CSS - Include with every page 
+    link(href='/css/sb-admin.css', rel='stylesheet')
+    // Core Scripts - Include with every page 
+    script(src='/js/jquery-1.10.2.js')
+    script(src='/js/bootstrap.min.js')
+    script(src='/js/plugins/metisMenu/jquery.metisMenu.js')
+    // SB Admin Scripts - Include with every page 
+    script(src='/js/sb-admin.js')
+    // Page-Level Plugin Scripts - Tables 
+    script(src='/js/plugins/dataTables/jquery.dataTables.js')
+    script(src='/js/plugins/dataTables/dataTables.bootstrap.js')
+    script(src='/js/main.js')
+  body
+    #wrapper
+      nav.navbar.navbar-default.navbar-static-top(role='navigation', style='margin-bottom: 0;')
+        .navbar-header
+          button.navbar-toggle(type='button', data-toggle='collapse', data-target='.sidebar-collapse')
+            span.sr-only Toggle navigation
+            span.icon-bar
+            span.icon-bar
+            span.icon-bar
+          a.navbar-brand(href='/') Git Moar
+        //.navbar-header 
+        //- ul.nav.navbar-top-links.navbar-right
+        //-   //.dropdown 
+        //-   li.dropdown
+        //-     //.dropdown 
+        //-     li.dropdown
+        //-       a.dropdown-toggle(data-toggle='dropdown', href='#')
+        //-         i.fa.fa-bell.fa-fw
+        //-         i.fa.fa-caret-down
+        //-       ul.dropdown-menu.dropdown-alerts
+        //-         li
+        //-           a(href='#')
+        //-             div
+        //-               i.fa.fa-comment.fa-fw
+        //-               | No database entries
+        //-               span.pull-right.text-muted.small Mar 24
+        //-       //.dropdown-alerts 
+        //-     //.dropdown 
+            //- li.dropdown
+            //-   a.dropdown-toggle(data-toggle='dropdown', href='#')
+            //-     i.fa.fa-user.fa-fw
+            //-     i.fa.fa-caret-down
+            //-   ul.dropdown-menu.dropdown-user
+            //-     li
+            //-       a(href='#')
+            //-         i.fa.fa-user.fa-fw
+            //-         | User Profile
+            //-     li
+            //-       a(href='#')
+            //-         i.fa.fa-gear.fa-fw
+            //-         | Settings
+            //-     li.divider
+            //-     li
+            //-       a(href='login.html')
+            //-         i.fa.fa-sign-out.fa-fw
+            //-         | Logout
+              //.dropdown-user 
+            //.dropdown 
+        //.navbar-top-links 
+      //.navbar-static-top 
+      nav.navbar-default.navbar-static-side(role='navigation')
+        .sidebar-collapse
+          ul#side-menu.nav
+            li.sidebar-search
+              .input-group.custom-search-form
+              form(action="/searching" method="get")
+                input.form-control#search.clearfix(type='text', name="search", placeholder="Search")
+                //- span.input-group-btn
+                //-   button.btn.btn-default(type='button' onclick="/searching")
+                //-     i.fa.fa-search
+              //input-group 
+            li
+              a(href='/')
+                i.fa.fa-dashboard.fa-fw
+                |  Home
+            li
+              a(href='/account/')
+                i.fa.fa-list.fa-fw
+                |  Account
+    block content
