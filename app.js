@@ -11,12 +11,10 @@
  var github = require('octonode');
  var qs = require('querystring');
  var url = require('url');
- var Cookies = require('cookies');
+ var engine = require('ejs-locals');
  var fs = require('fs');
  var _ = require('underscore-node');
-//var less = requestire('less');
-var engine = require('ejs-locals');
-var async = require('async');
+ var async = require('async');
 
 // Database connection. Modify conString for your own local copy
 var conString = "";
@@ -271,19 +269,67 @@ app.get('/', function(req, res) {
           for ( var i = 0, len = users_pool_array.length; i < len; i++ ) {
             console.log("User: " + users_pool_array[i].login + " followers: " + users_pool_array[i].followers);
           }
+          res.render('index', { token: req.session.auth_token, github_data: inputData});
+
         });
       }
       
-      res.render('index', { token: req.session.auth_token, github_data: inputData});
 
     }
 
-    
+  } else 
+  {
+    res.redirect('/login');
 
-  } else {
+  }
+
+});
+
+app.get('/correlations', function(req,res){
+  var token = req.session.auth_token;
+   
+      res.render('correlations', { token: token})
+})
+
+app.get('/connections', function(req, res){
+  console.log('What the fuck');
+  if (req.session.auth_token == null){
+    //console.log("Logged in!");
     console.log("Not logged in!");
+
     res.render('index', {token: null});
 
+  } else {
+
+    var token = req.session.auth_token;
+    var client = github.client(token);
+    var ghme = client.me();
+
+    var network = [];
+    var repos = [];
+
+
+
+
+
+    function getRepos(){
+      async.each(network, function(data, callback){
+
+        var ghuser = client.user(data["login"]);  
+        console.log("Getting data for " + data["login"]);
+        ghuser.repos(function(err, data, headers){
+          repos.push(data);
+          callback();
+        });
+      }, function(err){
+        done();
+      });
+    }
+
+    function done(){
+      console.log('WHAJCBHDJKSCHBSJDKHBCKJSHDBK');
+      res.render('connections', { token: token, followers: followers, repos: repos})
+    }
   }
 
 
@@ -298,7 +344,6 @@ app.get('/follow', function(req, res){
   var ghme = client.me();
   ghme.follow(query.user);
   res.end();
-
 
 });
 
