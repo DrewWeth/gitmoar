@@ -11,8 +11,8 @@ var passport = require('passport');
 var github = require('octonode');
 var qs = require('querystring');
 var url = require('url');
-var Cookies = require('cookies');
 var fs = require("fs");
+var engine = require('ejs-locals');
 //var less = require('less');
 
 // Database connection. Modify conString for your own local copy
@@ -27,7 +27,6 @@ var auth_url = github.auth.config({
 // Store info to verify against CSRF
 var state = auth_url.match(/&state=([0-9a-z]{32})/i);
 
-
 var app = express();
 
 // all environments
@@ -39,11 +38,10 @@ app.use(express.logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(express.methodOverride());
-app.use(express.cookieParser('your secret here'));
+app.use(express.cookieParser('123'));
 app.use(express.session());
 app.use(app.router);
 app.use(express.static( __dirname + '/public' ));
-
 
 
 // Set the directory to get the views to be /views
@@ -81,7 +79,6 @@ app.get('/login', function(req, res){
 });
 
 app.get('/auth', function(req, res){
-  var cookies = new Cookies( req, res);
   uri = url.parse(req.url);
   var values = qs.parse(uri.query);
   // Check against CSRF attacks
@@ -90,29 +87,24 @@ app.get('/auth', function(req, res){
     res.end('fail 403');
   } else {
     github.auth.login(values.code, function (err, token) {
-      cookies.set('token', token); // write the token as a cookie
-      res.writeHead(200, {'Content-Type': 'text/plain'});
-      //res.end(token);
-      res.end("authenticated!");
+      req.session.auth_token = token
+      res.redirect('/');
     });
   }
 });
 
-//test the cookies
-app.get('/cookies', function(req, res){
-  var cookies = new Cookies( req, res);
-  res.setHeader('Content-Type', 'application/json');
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  var token = cookies.get("token");
-  res.end(token);
-});
+app.get('/logout', function(req, res){
+  req.session.auth_token = null;
+  res.redirect('/');
+})
+
 
 //Start of GET/POST pages
 
 app.use(function(req, res, next){
   res.status(404);
   // respond with html page
-  if (req.accepts('jade')) {
+  if (req.accepts('ejs')) {
     res.render('404', { url: req.url });
     return;
   }
@@ -121,11 +113,11 @@ app.use(function(req, res, next){
 // main logic goes here
 
 app.get('/', function(req, res) {
-  var cookies = new Cookies( req, res);
-  if (cookies.get("token")){
+  var inputData = {};
+  if (req.session.auth_token){
     //console.log("Logged in!");
 
-    var token = cookies.get("token");
+    var token = req.session.auth_token;
     var client = github.client(token);
     var ghme = client.me();
 
@@ -172,7 +164,6 @@ app.get('/', function(req, res) {
 
       // all the data has finished loading 
       // put it in a thing
-      var inputData = {};
       inputData.followers = res1;
       inputData.following = res2;
       inputData.starred = res3;
@@ -183,16 +174,16 @@ app.get('/', function(req, res) {
       console.log(res3);
       console.log(res4);
       
+      res.render('index', { token: req.session.auth_token, github_data: inputData});
 
     }
-    
 
   } else {
     console.log("Not logged in!");
+    res.render('index', {token: null});
+
   }
 
-
-  res.render('index');
 });
 
 
