@@ -8,10 +8,9 @@
 
     <title>Git Moar</title>
 
+    <script src="js/jquery-2.1.1.min.js"></script>
 
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-
 
     <!-- Core CSS - Include with every page -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -28,6 +27,21 @@
 </head>
 
 <body>
+
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/trianglify/0.1.4/trianglify.min.js"></script>
+<script>
+
+    $(document).ready(function(){
+        var t = new Trianglify({x_gradient: ['#a3bfdb','#abc5e0','#e5ccb3','#e9d3bc','#edd9c4'], noiseIntensity: 0, strokeOpacity: Math.random(), fillOpacity: Math.random()});
+        var pattern = t.generate(window.innerWidth, window.innerHeight);
+        $('body').css({"background": pattern.dataUrl + " no-repeat center center fixed", "background-size": "cover"} );
+    })
+
+</script>
+
+
     <div id="wrapper">
         <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
             <div class="navbar-header">

@@ -119,14 +119,15 @@ app.get('/', function(req, res) {
     
   } else 
   {
-    res.redirect('/login');
+    res.render('index', {token: null});
 
   }
 
 });
 
-function mode(readsmes)
+function mode(readmes)
 {
+  console.log(readmes);
   if(readmes.length == 0)
     return null;
   var modeMap = {};
@@ -134,33 +135,21 @@ function mode(readsmes)
   for(var i = 0; i < readmes.length; i++)
   {
     var el = readmes[i];
-    if(modeMap[el] == null)
-      modeMap[el.language] = 1;
-    else
-      modeMap[el.language]++;  
-    if(modeMap[el.language] > maxCount)
-    {
-      maxEl = el;
-      maxCount = modeMap[el.language];
+    if(readmes[i].language != null){
+
+      if(modeMap[el.language] == null)
+        modeMap[el.language] = 1;
+      else
+        modeMap[el.language]++;
+      if(modeMap[el.language] > maxCount)
+      {
+        maxEl = el;
+        maxCount = modeMap[el.language];
+      }
     }
   }
   return maxEl.language;
 }
-
-function doAnalytics(client, readmes, callback){
-  var ghsearch = client.search();
-
-  language_mode = mode(readmes);
-  console.log("LANGUAGE MODE: " + language_mode);
-  ghsearch.repos({
-    q: 'language:' + language_mode,
-    sort: 'stargazers_count',
-    order: 'asc'
-  }, function(err, data, headers){
-    callback(data);
-  }); //array of search results
-}
-
 
 
 app.get('/correlations', function(req,res){
@@ -194,9 +183,16 @@ app.get('/correlations', function(req,res){
           callback();
         }); //file
       }, function(){
-        doAnalytics(client, readmes, function(data){
-          res.render('correlations', { token: token, readmes: readmes, repos: repos, interests: data["items"]})
-        });
+        var ghsearch = client.search();
+        language_mode = mode(readmes);
+        console.log("LANGUAGE MODE: " + language_mode);
+        ghsearch.repos({
+          q: 'language:' + language_mode,
+          sort: 'stargazers_count',
+          order: 'asc'
+        }, function(err, data, headers){
+          res.render('correlations', { token: token, readmes: readmes, repos: repos, interests: data["items"]});
+        }); //array of search results
       });
     });
   });
@@ -413,7 +409,7 @@ app.get('/d3', function(req, res){
 });
 
 app.get('/connections', function(req, res){
-  //console.log('What the fuck');
+   //console.log('What the fuck');
   if (req.session.auth_token == null){
     //console.log("Logged in!");
     console.log("Not logged in!");
@@ -436,10 +432,10 @@ app.get('/connections', function(req, res){
     ghme.info(function(err, data, headers){
       me = data;
       seen[me.id] = true;
+      console.log(headers);
     });
 
-   // getFirstLayer();
-   done();
+    getFirstLayer();
 
     function getFirstLayer(){
 
@@ -462,11 +458,6 @@ app.get('/connections', function(req, res){
       });
 
       function addFirstLayer(err, followers, following){
-
-        // deduplication logic
-
-        //console.log("Followers: " + followers);
-        //console.log("Following: " + following);
 
         var combined = {};
 
@@ -618,10 +609,11 @@ app.get('/connections', function(req, res){
     function done(){
       console.log('Finished!');
       console.log("Network length: " + network.length);
-      res.render('connections', { token: token, network1: network, network2: new_network, repos: repos});
+      network.push.apply(network, new_network);
+      res.render('connections', {token: token, network: network});
     }
-  }
 
+  }
 
 });
 

@@ -13,12 +13,11 @@ a {
 
 .head-shot{
 
-	/*width:50px;*/
+	width:50px;
 }
 
 #page-wrapper {
-
-	opacity: .75;
+	padding: 15px;
 }
 .lg-head-shot{
 	width: 100px;
@@ -33,4 +32,8 @@ a {
 	text-shadow: 3px 3px 0px #2c2e38, 5px 5px 0px #5c5f72;
 	font: 80px 'BazarMedium';
 	letter-spacing: 10px;
+}
+
+.sidebar-collapse{
+	border-right: 1px solid #eee;
 }

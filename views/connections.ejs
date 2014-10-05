@@ -1,52 +1,25 @@
     <%- include header.ejs -%>
-            <div class="row">
+            <div class="row" display="background:transparent">
                 <div class="col-lg-12" id="network">
-                    <h3>Your Network</h3>
-                    
+                    <h3>Your Network <span class="badge"><%= network.length %></span></h3>
+                    <% network.forEach(function(n1){ %>
+                      <img class="img-circle head-shot" src="<%= n1.avatar_url %>"></img>
+                      <% }) %>
                 </div>
             </div>
             <div class="row">
                 <div class="col-lg-12">
-                <h3>Recommended Repos</h3>
-                </h3>
+                    <h3>Below shows your networks relative contributions and popularity</h3>
                 </div>
             </div>
-
-            <div class="row">
-                <div class="col-lg-12">
-                    <h3>Follower's Repos</h3>
-                    <ul class="list-group">
-                    <% repos.forEach(function(data){ %>
-                        <% data.forEach(function(data2){ %>
-                        <li class="list-group-item">
-                            <a href="<%= data2["html_url"] %>"><%= data2["name"] %></a> by <a href="<%= data2.owner.html_url %>"><%= data2.owner.login %></a>
-
-                            
-                            <div class="panel panel-default">
-                            <div class="panel-body">
-                            <span><%= data2.description %></span>
-                            </div>
-                            </div>
-                            <span><%= data2.stargazers_count %> <i class="fa fa-star"></i><span>                            <label class="label label-default"><%= data2.language %></label>
-
-                        </li>
-                    <% }); %>
-                    <% }); %>
-
-                    </ul>
-                </div>
-            </div>
-            <script>
-            </script>
 
         <%- include footer.ejs -%>
-
-
+        
 <script src="http://d3js.org/d3.v3.min.js"></script>
 
 <script>
 
-var diameter = 960,
+var diameter = 1000,
     format = d3.format(",d"),
     color = d3.scale.category20c();
 
@@ -55,7 +28,7 @@ var bubble = d3.layout.pack()
     .size([diameter, diameter])
     .padding(1.5);
 
-var svg = d3.select("#network").append("svg")
+var svg = d3.select("body").append("svg")
     .attr("width", diameter)
     .attr("height", diameter)
     .attr("class", "bubble");
