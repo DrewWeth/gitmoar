@@ -115,17 +115,8 @@ app.use(function(req, res, next){
 
 app.get('/', function(req, res) {
   if (req.session.auth_token){
+    res.render('index', { token: req.session.auth_token});
     
-    var client = github.client(token);
-    var ghme = client.me();
-    var repos = [];
-    var me = null;
-    readmes = [];
-
-    ghme.info(function(err, data, headers){
-      me = data;
-      res.render('index', { token: req.session.auth_token, me: me});
-    });
   } else 
   {
     res.redirect('/login');
@@ -155,6 +146,21 @@ function mode(readsmes)
   }
   return maxEl.language;
 }
+
+function doAnalytics(client, readmes, callback){
+  var ghsearch = client.search();
+
+  language_mode = mode(readmes);
+  console.log("LANGUAGE MODE: " + language_mode);
+  ghsearch.repos({
+    q: 'language:' + language_mode,
+    sort: 'stargazers_count',
+    order: 'asc'
+  }, function(err, data, headers){
+    callback(data);
+  }); //array of search results
+}
+
 
 
 app.get('/correlations', function(req,res){
@@ -188,18 +194,11 @@ app.get('/correlations', function(req,res){
           callback();
         }); //file
       }, function(){
-          var ghsearch = client.search();
-          language_mode = mode(readmes);
-          console.log("LANGUAGE MODE: " + language_mode);
-          ghsearch.repos({
-            q: 'language:' + language_mode,
-            sort: 'stargazers_count',
-            order: 'asc'
-          }, function(err, data, headers){
-            res.render('correlations', { token: token, readmes: readmes, repos: repos, interests: data["items"]});
-          }); //array of search results
+        doAnalytics(client, readmes, function(data){
+          res.render('correlations', { token: token, readmes: readmes, repos: repos, interests: data["items"]})
         });
       });
+    });
   });
 });
 
@@ -652,31 +651,11 @@ app.get('/star', function(req, res){
 });
 
 
-app.get('/search', function(req, res) {
-  var query_str = req.query.q;
+app.get('/searching', function(req, res) {
+  var lname = req.query.search;
+  console.log(lname);
   
-  var token = req.session.auth_token;
-  var client = github.client(token);
-  var ghsearch = client.search();
-  console.log('first');  
-  repos =[];
-  users = [];
-  
-  ghsearch.users({
-    q: query_str,
-    sort: 'created',
-    order: 'asc'
-  },1, function(err, data, headers){
-    users = data;
-    ghsearch.repos({
-      q: query_str,
-      sort: 'stargazers_count',
-      order: 'asc'
-    }, function(err, data, headers){
-      repos = data;
-      res.render('search', { results: users["items"], repos: repos["items"] });
-    });
-  }); //array of search results
+  res.render('search');
 });
 
 app.get('/more', function(req, res){
