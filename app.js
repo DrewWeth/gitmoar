@@ -132,13 +132,17 @@ function mode(readmes)
     return null;
   var modeMap = {};
   var maxEl = readmes[0], maxCount = 1;
+  var languages = [];
   for(var i = 0; i < readmes.length; i++)
   {
     var el = readmes[i];
     if(readmes[i].language != null){
 
-      if(modeMap[el.language] == null)
+      if(modeMap[el.language] == null) {
         modeMap[el.language] = 1;
+        if (el.language != null)
+        languages.push(el.language);
+      }
       else
         modeMap[el.language]++;
       if(modeMap[el.language] > maxCount)
@@ -148,7 +152,26 @@ function mode(readmes)
       }
     }
   }
-  return maxEl.language;
+  return languages;
+}
+
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex ;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
 }
 
 
@@ -184,15 +207,40 @@ app.get('/correlations', function(req,res){
         }); //file
       }, function(){
         var ghsearch = client.search();
-        language_mode = mode(readmes);
-        console.log("LANGUAGE MODE: " + language_mode);
-        
+        language_mode = mode(readmes); // an array
+        shuffle(language_mode);
+        console.log(language_mode);
+        first = [];
+        second = [];
+        third = [];
+        var shittiest_variable_ever_forgive_me = 0
         ghsearch.repos({
-          q: 'language:' + language_mode,
+          q: 'language:' + language_mode[shittiest_variable_ever_forgive_me],
           sort: 'stargazers_count',
           order: 'asc'
         }, function(err, data, headers){
-          res.render('correlations', { token: token, readmes: readmes, repos: repos, interests: data["items"], language_mode: language_mode});
+          first = data["items"];
+          if (language_mode.length >= 2)
+            shittiest_variable_ever_forgive_me += 1;
+          ghsearch.repos({
+            q: 'language:' + language_mode[shittiest_variable_ever_forgive_me],
+            sort: 'stargazers_count',
+            order: 'asc'
+          }, function(err, data, headers){
+            second = data["items"];
+            if(language_mode.length >= 3)
+              shittiest_variable_ever_forgive_me += 1
+            ghsearch.repos({
+              q: 'language:' + language_mode[shittiest_variable_ever_forgive_me],
+              sort: 'stargazers_count',
+              order: 'asc'
+            }, function(err, data, headers)
+            {
+              third = data["items"];
+              
+              res.render('correlations', { token: token, readmes: readmes, repos: repos, interests: first, second: second, third: third, language_mode: language_mode.slice(0, shittiest_variable_ever_forgive_me+1)});
+            });
+          });
         }); //array of search results
       });
     });

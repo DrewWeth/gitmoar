@@ -5,10 +5,25 @@
                     <ul class="list-group">
             			<% interests.forEach(function(interest){ %>
 	                    	<li class="list-group-item">
-                				<a href="<%= interest["html_url"] %>"><%= interest["name"] %></a>
+                				<a href="<%= interest["html_url"] %>"><%= interest["name"] %></a> <%= interest["description"] %> <label class="label label-info"><%= interest["language"] %></label>
                 				<span class="pull-right"><%= interest["stargazers_count"] %> <i class="fa fa-star"></i></span>
 	            			</li>
         				<% }) %>
+
+                        <% second.forEach(function(interest){ %>
+                            <li class="list-group-item">
+                                <a href="<%= interest["html_url"] %>"><%= interest["name"] %></a> <%= interest["description"] %> <label class="label label-info"><%= interest["language"] %></label>
+                                <span class="pull-right"><%= interest["stargazers_count"] %> <i class="fa fa-star"></i></span>
+                            </li>
+                        <% }) %>
+
+                        <% third.forEach(function(interest){ %>
+                            <li class="list-group-item">
+                                <a href="<%= interest["html_url"] %>"><%= interest["name"] %></a> <%= interest["description"] %> <label class="label label-info"><%= interest["language"] %></label>
+                                <span class="pull-right"><%= interest["stargazers_count"] %> <i class="fa fa-star"></i></span>
+                            </li>
+                        <% }) %>
+
                     </ul>
                 </div>
             </div>
