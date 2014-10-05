@@ -125,11 +125,82 @@ app.get('/', function(req, res) {
 
 });
 
+function mode(readsmes)
+{
+  if(readmes.length == 0)
+    return null;
+  var modeMap = {};
+  var maxEl = readmes[0], maxCount = 1;
+  for(var i = 0; i < readmes.length; i++)
+  {
+    var el = readmes[i];
+    if(modeMap[el] == null)
+      modeMap[el.language] = 1;
+    else
+      modeMap[el.language]++;  
+    if(modeMap[el.language] > maxCount)
+    {
+      maxEl = el;
+      maxCount = modeMap[el.language];
+    }
+  }
+  return maxEl.language;
+}
+
+function doAnalytics(client, readmes, callback){
+  var ghsearch = client.search();
+
+  language_mode = mode(readmes);
+  console.log("LANGUAGE MODE: " + language_mode);
+  ghsearch.repos({
+    q: 'language:' + language_mode,
+    sort: 'stargazers_count',
+    order: 'asc'
+  }, function(err, data, headers){
+    callback(data);
+  }); //array of search results
+}
+
+
+
 app.get('/correlations', function(req,res){
   var token = req.session.auth_token;
-   
-      res.render('correlations', { token: token})
-})
+  
+  var client = github.client(token);
+  var ghme = client.me();
+  var repos = [];
+  var me = null;
+  readmes = [];
+
+  ghme.info(function(err, data, headers){
+    me = data;
+    ghme.repos(function(err, data, headers){
+      repos = data;
+      async.each(repos, function(repo, callback){
+        var ghrepo = client.repo(repo["full_name"]); 
+        ghrepo.readme(function(err, data, headers){
+          if (data)
+          {
+            var b = new Buffer(data["content"], 'base64');
+            labels = repo["language"];
+            var obj = {
+              name: repo["full_name"],
+              language: repo["language"],
+              content: b.toString(),
+              labels: labels
+            };
+            readmes.push(obj);
+          }
+          callback();
+        }); //file
+      }, function(){
+        doAnalytics(client, readmes, function(data){
+          res.render('correlations', { token: token, readmes: readmes, repos: repos, interests: data["items"]})
+        });
+      });
+    });
+  });
+});
 
 app.get('/connections', function(req, res){
   //console.log('What the fuck');
