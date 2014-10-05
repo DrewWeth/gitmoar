@@ -23,6 +23,18 @@ a {
 	width: 100px;
 }
 
+.xlg-head-shot{
+	width: 200px;
+}
+
+.corner
+{
+	top:0;
+	right:0;
+	position: absolute;
+	padding: 10px;
+}
+
 .fa-star{
 	color: #FADE17;
 }
@@ -36,4 +48,29 @@ a {
 
 .sidebar-collapse{
 	border-right: 1px solid #eee;
+}
+.fancy{
+        color: #424242;
+        font-family: "Adobe Caslon Pro", "Hoefler Text", Georgia, Garamond, Times, serif;
+	letter-spacing:0.1em;
+	text-align:center;
+	margin: 40px auto;
+	text-transform: lowercase;
+	line-height: 145%;
+	font-size: 14pt;
+	font-variant: small-caps;
+        }
+.headline{
+	font-family:  'Hoefler Text', Georgia, 'Times New Roman', serif;
+	font-weight: normal;
+        font-size: 1.75em;
+	letter-spacing: .2em;
+	line-height: 1.1em;
+	margin:0px;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.margin-top{
+	margin-top: 15px;
 }

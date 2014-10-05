@@ -1,31 +1,64 @@
     <%- include header.ejs -%>
 
-            <% if (token == null) { %>
-            <div class="row">
-                <div class="col-lg-12">
-                    <h1 class="page-header">Sign in and discover more!</h1>
-                    <center><a style="font-size:1000%" href="/login"><i class="fa fa-github"></i></a></center>
-                </div>
-            </div>
-            <% } else { %>
-            <!-- /.row -->
-            <div class="row">
-                <div class="col-md-12 break-word">
-                    <h1 class="page-header">Get more with git moar</h1>
-                   
-                    <p style="word-wrap: break-word;">
-                        Git Moar is a Github recommendation engine that helps you get more of what you want.  
-                    </p>
+    <% if (token == null) { %>
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="headline page-header margin-top">Sign in and discover more!</h1>
+            <center><a style="margin-bottom: :-5px;font-size:1500%" href="/login"><i class="fa fa-github"></i></a></center>
+        </div>
 
-                         <div class="col-md-6 break-word">
-                            <h3>Cool Cats</h3>
-                         </div>
+    </div>
+    <% } else { %>
+    
+    <!-- /.row -->
+    <div class="row">
 
-                         <div class="col-md-6 break-word">
-                            <h3>Rad Repos</h3>
-                         </div>
+        <div class="col-md-12 break-word">
+            <h1 class="headline margin-top page-header">Get More With Git Moar</h1>
 
-                   </div>
-            </div>
-            <% } %>
-        <%- include footer.ejs -%>
+            <p style="word-wrap: break-word;" class="fancy">
+                "Git Moar is a Github recommendation engine that helps you get more of what you want." - Me
+            </p>
+            <hr>
+        </div>
+    </div>
+    <% } %>
+    <div class="row">
+        <div class="col-md-12 break-word">
+            <h4 class="fancy" style="margin-top:-10px;margin-bottom:20px">Creators</h4>
+            <div class="col-md-6 break-word">
+                <div class="panel panel-default">
+                  <div class="panel-body">
+
+
+                    <ul class="list-group">
+                        <a href="href="http://github.com/DrewWeth" class="list-group-item">
+                         <center>Drew Wetherington</center></a>
+                         <center><img class="margin-top xlg-head-shot img-circle" src="https://avatars3.githubusercontent.com/u/4162957"></img></center>
+                     </a>
+                 </ul>
+             </div>
+         </div>
+     </div>
+
+     <div class="col-md-6 break-word">
+        <div class="panel panel-default">
+          <div class="panel-body">
+
+            <ul class="list-group">
+                <a href="https://github.com/chrisdopuch" class="list-group-item">
+                    <center>Chris Dopuch</center></a>
+                </a>
+                <center><img class="margin-top xlg-head-shot img-circle" src="https://avatars2.githubusercontent.com/u/2433616?v=2&s=460"></img></center>
+
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+
+
+</div>
+</div>
+<%- include footer.ejs -%>

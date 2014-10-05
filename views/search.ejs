@@ -31,7 +31,7 @@
           			<a href="<%= repo["html_url"] %>" class="list-group-item">
           			
         			<img src="<%= repo.owner.avatar_url %>" class="img-circle head-shot">
-<b><%= repo["name"] %></b> <small><%= repo["description"] %></small> <span class="pull-right"><label class="label label-default"><%= repo["language"] %></label> <%= repo.stargazers_count %> <i class="fa fa-star"></i></span>
+<b><%= repo["name"] %></b> <p><small><%= repo["description"] %></small></p><span class="corner in-line"><label class="label label-default" ><%= repo["language"] %></label> <%= repo.stargazers_count %> <i class="fa fa-star"></i></span>
       			</a>
           		<% }); %>
           	</ul>  

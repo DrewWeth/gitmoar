@@ -1,7 +1,7 @@
     <%- include header.ejs -%>
     		<div class="row">
                 <div class="col-lg-12">
-                    <h3>Based on your interests, you may also like...</h3>
+                    <h3>Based on your interests, you may also like... <label class="label label-primary"><%= language_mode %></label></h3>
                     <ul class="list-group">
             			<% interests.forEach(function(interest){ %>
 	                    	<li class="list-group-item">
@@ -9,6 +9,7 @@
                 				<span class="pull-right"><%= interest["stargazers_count"] %> <i class="fa fa-star"></i></span>
 	            			</li>
         				<% }) %>
+                    </ul>
                 </div>
             </div>
 

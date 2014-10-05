@@ -160,7 +160,7 @@ app.get('/correlations', function(req,res){
   var repos = [];
   var me = null;
   readmes = [];
-
+  var language_mode = "";
   ghme.info(function(err, data, headers){
     me = data;
     ghme.repos(function(err, data, headers){
@@ -186,12 +186,13 @@ app.get('/correlations', function(req,res){
         var ghsearch = client.search();
         language_mode = mode(readmes);
         console.log("LANGUAGE MODE: " + language_mode);
+        
         ghsearch.repos({
           q: 'language:' + language_mode,
           sort: 'stargazers_count',
           order: 'asc'
         }, function(err, data, headers){
-          res.render('correlations', { token: token, readmes: readmes, repos: repos, interests: data["items"]});
+          res.render('correlations', { token: token, readmes: readmes, repos: repos, interests: data["items"], language_mode: language_mode});
         }); //array of search results
       });
     });
@@ -643,11 +644,31 @@ app.get('/star', function(req, res){
 });
 
 
-app.get('/searching', function(req, res) {
-  var lname = req.query.search;
-  console.log(lname);
+app.get('/search', function(req, res) {
+  var query_str = req.query.q;
   
-  res.render('search');
+  var token = req.session.auth_token;
+  var client = github.client(token);
+  var ghsearch = client.search();
+  console.log('first');  
+  repos =[];
+  users = [];
+  
+  ghsearch.users({
+    q: query_str,
+    sort: 'created',
+    order: 'asc'
+  },1, function(err, data, headers){
+    users = data;
+    ghsearch.repos({
+      q: query_str,
+      sort: 'stargazers_count',
+      order: 'asc'
+    }, function(err, data, headers){
+      repos = data;
+      res.render('search', { results: users["items"], repos: repos["items"] });
+    });
+  }); //array of search results
 });
 
 app.get('/more', function(req, res){
