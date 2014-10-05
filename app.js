@@ -114,168 +114,8 @@ app.use(function(req, res, next){
 // main logic goes here
 
 app.get('/', function(req, res) {
-  var inputData = {};
   if (req.session.auth_token){
-    console.log("Logged in!");
-
-    var token = req.session.auth_token;
-    var client = github.client(token);
-    var ghme = client.me();
-    var me;
-    ghme.info(function(err, data, headers){
-      me = data;
-      //console.log(me);
-    });
-
-    // set up for multiple calls finishing
-    var res1, res2, res3, res4, done = 0;
-
-    ghme.followers(function( err, data, headers){
-      if(err) handle_data(err, null, null, null, null);
-      res1 = data;
-      done++;
-      if ( done === 4 ) 
-        handle_data(null, res1, res2, res3, res4);
-    });
-
-    ghme.following(function( err, data, headers){
-      if(err) handle_data(err, null, null, null, null);
-      res2 = data;
-      done++;
-      if ( done === 4 ) 
-        handle_data(null, res1, res2, res3, res4);
-    });
-
-    ghme.starred(function( err, data, headers){
-      if(err) handle_data(err, null, null, null, null);
-      res3 = data;
-      done++;
-      if ( done === 4 ) 
-        handle_data(null, res1, res2, res3, res4);
-    });
-
-    ghme.repos(function( err, data, headers){
-      if(err) handle_data(err, null, null, null, null);
-      res4 = data;
-      done++;
-      if ( done === 4 ) 
-        handle_data(null, res1, res2, res3, res4);
-    });
-
-    function handle_data(err, res1, res2, res3, res4) {
-      if(err) {
-        console.log("There was an error in the handle_data function");
-        console.log(err);
-        return;
-      } 
-
-      // all the data has finished loading 
-      // put it in a thing
-      inputData.followers = res1;
-      inputData.following = res2;
-      inputData.starred = res3;
-      inputData.repos = res4;
-
-      /*fs.writeFile("test.json", JSON.stringify(inputData), function(err, written, buffer){
-        if(err) {
-          console.log("There was an error in the writing file function");
-          console.log(err);
-          return;
-        } 
-      });*/
-
-      var combined = {};
-
-      for( var i = 0, len = inputData.followers.length; i < len; i++){
-        combined[inputData.followers[i].id] = inputData.followers[i];
-      }
-
-      for( var i = 0, len = inputData.following.length; i < len; i++){
-        combined[inputData.following[i].id] = inputData.following[i];
-      }
-
-      var combined_array = [];
-      var j = 0;
-
-      for(var key in combined) {
-        if(combined.hasOwnProperty(key)) {
-          combined_array[j] = combined[key];
-          j++;
-        }
-      }
-
-      //console.log(combined);
-
-      var users_pool = {};
-
-      // get the following of each user in the combined
-      // and add them to the users pool
-      async.each(combined_array, function(item, callback){
-        //console.log(item);
-        var ghuser = client.user(item.login);
-        ghuser.following(function(err, data, headers){
-          if(err) {
-            console.log("There was an error in the get followers of followers function");
-            console.log(err);
-            callback(err);
-          } 
-          for(var i = 0, len = data.length; i < len; i++) {
-            users_pool[data[i].id] = data[i];
-          }
-          console.log('Do a callback');
-          callback();
-
-        });
-      }, function(err) {
-        console.log("Got all followers");
-        //console.log(users_pool);
-        //console.log(Object.keys(users_pool).length);
-        get_follower_counts();
-      });
-
-      var users_pool_array = [];
-
-      function get_follower_counts(){
-        
-        var j = 0;
-
-        for(var key in users_pool) {
-          if(users_pool.hasOwnProperty(key)) {
-            users_pool_array[j] = users_pool[key];
-            j++;
-          }
-        }
-
-        async.each(users_pool_array, function(item, callback){
-
-          var ghuser = client.user(item.login);
-          ghuser.following(function(err, data, headers){
-            var num = data.length;
-            item.followers = num;
-            callback();
-          });
-
-        },function(err){
-          console.log("Got all follower counts");
-          function compare(a,b) {
-            if (a.followers > b.followers)
-               return -1;
-            if (a.followers < b.followers)
-              return 1;
-            return 0;
-          }
-
-          users_pool_array.sort(compare);
-          for ( var i = 0, len = users_pool_array.length; i < len; i++ ) {
-            console.log("User: " + users_pool_array[i].login + " followers: " + users_pool_array[i].followers);
-          }
-          res.render('index', { token: req.session.auth_token, github_data: inputData});
-
-        });
-      }
-      
-
-    }
+    res.render('index', { token: req.session.auth_token});
 
   } else 
   {
@@ -292,7 +132,7 @@ app.get('/correlations', function(req,res){
 })
 
 app.get('/connections', function(req, res){
-  console.log('What the fuck');
+  //console.log('What the fuck');
   if (req.session.auth_token == null){
     //console.log("Logged in!");
     console.log("Not logged in!");
@@ -306,29 +146,171 @@ app.get('/connections', function(req, res){
     var ghme = client.me();
 
     var network = [];
+    var new_network = [];
     var repos = [];
+    var seen = {}; // track who we have seen already
+    
+    var me;
+    // get self info so we don't have ourselves in the newtwork later
+    ghme.info(function(err, data, headers){
+      me = data;
+      seen[me.id] = true;
+    });
+
+    getFirstLayer();
+
+    function getFirstLayer(){
+
+      var followers, following, done = 0;
+
+      ghme.followers(function( err, data, headers){
+        if(err) addFirstLayer(err, null, null);
+        followers = data;
+        done++;
+        if ( done === 2 ) 
+          addFirstLayer(null, followers, following);
+      });
+
+      ghme.following(function( err, data, headers){
+        if(err) addFirstLayer(err, null, null);
+        following = data;
+        done++;
+        if ( done === 2 ) 
+          addFirstLayer(null, followers, following);
+      });
+
+      function addFirstLayer(err, followers, following){
+
+        // deduplication logic
+
+        //console.log("Followers: " + followers);
+        //console.log("Following: " + following);
+
+        var combined = {};
+
+        for( var i = 0, len = followers.length; i < len; i++){
+          combined[followers[i].id] = followers[i];
+        }
+
+        for( var i = 0, len = following.length; i < len; i++){
+          combined[following[i].id] = following[i];
+        }
+
+        var j = 0;
+
+        for(var key in combined) {
+          if(combined.hasOwnProperty(key)) {
+            seen[key] = true;
+            network[j] = combined[key];
+            network[j].layer = 1;
+            j++;
+          }
+        }
+
+        getSecondLayer();
+
+      }
+
+    }
+
+    var iter = 0;
+
+    function getSecondLayer(){
+
+      async.each(network, function(item, callback){
+        callback();
+        //console.log("Item login: " + item.login);
+        var ghuser = client.user(item.login);
+        ghuser.following(function(err, data, headers){
+            if(err) {
+              console.log("There was an error in the getSecondLayer function");
+              console.log(err);
+              return;
+            } 
+           // console.log(data.login);
+           for( var i = 0, len = data.length; i < len; i++) {
+
+              if(!seen[data[i].id]) {
+                data[i].layer = 2;
+                new_network.push(data[i]);
+                console.log("A NEW THING: " + data[i].login);
+              } else {
+                console.log("I SEEN'T IT!");
+              }
+          }
+          iter++;
+          console.log(iter);
+          console.log("Network length: " + new_network.length);
+          
+        });
+        //callback();
+      }, function(err){
+        
+        processNetwork();
+      });
+
+    }
+
+    function processNetwork(){
+      async.parallel([
+        function(callback) {
+          getFollowerCounts(callback);
+        },
+        function(callback){
+          getRepos(callback);
+        }],
+      function(err) {
+        done();
+      });
+    }
+
+    function getFollowerCounts(callback){
+
+      async.each(network, function(item, callback1){
+        if(item.layer === 2) {
+          callback();
+          return;
+        }
+        var ghuser = client.user(item.login);
+        ghuser.followers(function(err, data, headers){
+            if(err) {
+              console.log("There was an error in the getFollowerCounts function");
+              console.log(err);
+              return;
+            } 
+            var num = data.length;
+            item.followers = num;
+            callback1();
+        });
+
+      }, function(err){
+        callback();
+      });
+
+    }
 
 
 
+    function getRepos(callback){
+      async.each(network, function(data, callback1){
 
-
-    function getRepos(){
-      async.each(network, function(data, callback){
+        // TODO: only get repos from layer 1
 
         var ghuser = client.user(data["login"]);  
         console.log("Getting data for " + data["login"]);
         ghuser.repos(function(err, data, headers){
           repos.push(data);
-          callback();
+          callback1();
         });
       }, function(err){
-        done();
+        callback();
       });
     }
 
     function done(){
-      console.log('WHAJCBHDJKSCHBSJDKHBCKJSHDBK');
-      res.render('connections', { token: token, followers: followers, repos: repos})
+      console.log('Finished!');
+      console.log("Network length: " + network.length);
+      res.render('connections', { token: token, network1: network, network2: new_network, repos: repos});
     }
   }
 

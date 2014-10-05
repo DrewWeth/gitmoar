@@ -5,7 +5,11 @@
                     <ul class="list-group">
                         <li class="list-group-item">
 
-                    <% followers.forEach(function(data){ %>
+                    <% network1.forEach(function(data){ %>
+                    <a href="<%= data["html_url"] %>"><img class="img-circle head-shot" alt="<%= data["login"] %>"  src="<%= data["avatar_url"] %>"></img></a>
+                            
+                    <% }); %>
+                    <% network2.forEach(function(data){ %>
                     <a href="<%= data["html_url"] %>"><img class="img-circle head-shot" alt="<%= data["login"] %>"  src="<%= data["avatar_url"] %>"></img></a>
                             
                     <% }); %>
