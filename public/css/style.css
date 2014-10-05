@@ -14,3 +14,9 @@ a {
 .head-shot{
 	/*width:50px;*/
 }
+
+#page-wrapper {
+
+	opacity: .75;
+
+}

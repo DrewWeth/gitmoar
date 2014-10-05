@@ -2,20 +2,7 @@
             <div class="row">
                 <div class="col-lg-12" id="network">
                     <h3>Your Network</h3>
-                    <ul class="list-group">
-                        <li class="list-group-item">
-
-                    <% network1.forEach(function(data){ %>
-                    <a href="<%= data["html_url"] %>"><img class="img-circle head-shot" alt="<%= data["login"] %>"  src="<%= data["avatar_url"] %> " style="<%= (data["followers"] <= 300) ? "width: " + (2 * data["followers"] + 50) + "px; " + "height: " + (2 * data["followers"] + 50) + "px" : "width: 300px; height: 300px;"  %>"></img></a>
-                            
-                    <% }); %>
-                    <% network2.forEach(function(data){ %>
-                    <a href="<%= data["html_url"] %>"><img class="img-circle head-shot" alt="<%= data["login"] %>"  src="<%= data["avatar_url"] %>" style="<%= (data["followers"] <= 300) ? "width: " + (data["followers"] + 50) + "px; " + "height: " + (data["followers"] + 50) + "px" : "width: 300px; height: 300px; shit"  %>"></img></a>
-                            
-                    <% }); %>
-                        </li>
-
-                    </ul>
+                    
                 </div>
             </div>
             <div class="row">
@@ -73,9 +60,12 @@ var svg = d3.select("#network").append("svg")
     .attr("height", diameter)
     .attr("class", "bubble");
 
+var defs = svg.append('svg:defs');
+
+
 d3.json("/d3", function(error, root) {
     if(error){
-        console.log("You done fucked up");
+        console.log("You done messed up");
         console.log(error);
     } else {
         console.log(root);
@@ -89,17 +79,33 @@ d3.json("/d3", function(error, root) {
       .attr("width", function(d) { return d.r + "px";})
       .attr("height", function(d) { return d.r + "px";});
 
-  node.append("a")
-      .attr("href", function(d) { return d.url});
+    var allpatterns = defs.selectAll("pattern")
+        .data(bubble.nodes(classes(root))
+          .filter(function(d) { return !d.children; }))
+        .enter().append('svg:pattern')
+        .attr('id', function(d){ return d.id;})
+        .attr('width', function(d) { return d.r;})
+        .attr('height', function(d) { return d.r;})
+        .append('svg:image')
+        .attr('xlink:href', function(d){ console.log(d.avatar_url); return d.avatar_url;})
+        .attr('x', 0)//function(d) { return d.r / 1.5; })
+        .attr('y', 0)//function(d) { return d.r / 1.5; })
+        .attr('width',  function(d) { return d.r * 2;})
+        .attr('height',  function(d) { return d.r * 2;})
+        ;
 
-  node.append("circle")
+  node.append("svg:a")
+      .attr("xlink:href", function(d) { return d.url})
+      .attr("target", "_blank")
+
+  .append("circle")
       .attr("r", function(d) { return d.r; })
-      .style("fill", function(d) { return color(d.packageName); });
+      .style("fill", function(d){ return "url(#" + d.id + ")"});
 
-  node.append("text")
+  /*node.append("text")
       .attr("dy", ".3em")
       .style("text-anchor", "middle")
-      .text(function(d) { return d.login; });
+      .text(function(d) { return d.login; });*/
 });
 
 // Returns a flattened hierarchy containing all leaf nodes under the root.
@@ -108,7 +114,7 @@ function classes(root) {
 
   for ( var i = 0, len = root.length; i < len; i++) {
     var obj = root[i];
-    classes.push({login: obj.login, "avatar_url": obj["avatar url"], value: obj.followers, url: obj.url});
+    classes.push({login: obj.login, avatar_url: obj["avatar_url"], value: obj.followers, url: "https://github.com/" + obj.login, id: obj.id});
   }
 
   /*function recurse(name, node) {

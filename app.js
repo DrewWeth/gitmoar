@@ -115,8 +115,17 @@ app.use(function(req, res, next){
 
 app.get('/', function(req, res) {
   if (req.session.auth_token){
-    res.render('index', { token: req.session.auth_token});
+    
+    var client = github.client(token);
+    var ghme = client.me();
+    var repos = [];
+    var me = null;
+    readmes = [];
 
+    ghme.info(function(err, data, headers){
+      me = data;
+      res.render('index', { token: req.session.auth_token, me: me});
+    });
   } else 
   {
     res.redirect('/login');
@@ -404,6 +413,7 @@ app.get('/d3', function(req, res){
       console.log('Finished!');
       console.log("Network length: " + network.length);
       res.setHeader('Content-Type', 'application/json');
+      network.push.apply(network, new_network);
       res.end(JSON.stringify(network));
     }
   }
