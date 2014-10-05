@@ -1,16 +1,16 @@
     <%- include header.ejs -%>
             <div class="row">
-                <div class="col-lg-12">
+                <div class="col-lg-12" id="network">
                     <h3>Your Network</h3>
                     <ul class="list-group">
                         <li class="list-group-item">
 
                     <% network1.forEach(function(data){ %>
-                    <a href="<%= data["html_url"] %>"><img class="img-circle head-shot" alt="<%= data["login"] %>"  src="<%= data["avatar_url"] %>"></img></a>
+                    <a href="<%= data["html_url"] %>"><img class="img-circle head-shot" alt="<%= data["login"] %>"  src="<%= data["avatar_url"] %> " style="<%= (data["followers"] <= 300) ? "width: " + (2 * data["followers"] + 50) + "px; " + "height: " + (2 * data["followers"] + 50) + "px" : "width: 300px; height: 300px;"  %>"></img></a>
                             
                     <% }); %>
                     <% network2.forEach(function(data){ %>
-                    <a href="<%= data["html_url"] %>"><img class="img-circle head-shot" alt="<%= data["login"] %>"  src="<%= data["avatar_url"] %>"></img></a>
+                    <a href="<%= data["html_url"] %>"><img class="img-circle head-shot" alt="<%= data["login"] %>"  src="<%= data["avatar_url"] %>" style="<%= (data["followers"] <= 300) ? "width: " + (data["followers"] + 50) + "px; " + "height: " + (data["followers"] + 50) + "px" : "width: 300px; height: 300px; shit"  %>"></img></a>
                             
                     <% }); %>
                         </li>
@@ -53,3 +53,73 @@
             </script>
 
         <%- include footer.ejs -%>
+
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+<script>
+
+var diameter = 960,
+    format = d3.format(",d"),
+    color = d3.scale.category20c();
+
+var bubble = d3.layout.pack()
+    .sort(null)
+    .size([diameter, diameter])
+    .padding(1.5);
+
+var svg = d3.select("#network").append("svg")
+    .attr("width", diameter)
+    .attr("height", diameter)
+    .attr("class", "bubble");
+
+d3.json("/d3", function(error, root) {
+    if(error){
+        console.log("You done fucked up");
+        console.log(error);
+    } else {
+        console.log(root);
+    }
+  var node = svg.selectAll(".node")
+      .data(bubble.nodes(classes(root))
+      .filter(function(d) { return !d.children; }))
+    .enter().append("g")
+      .attr("class", "node")
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+      .attr("width", function(d) { return d.r + "px";})
+      .attr("height", function(d) { return d.r + "px";});
+
+  node.append("a")
+      .attr("href", function(d) { return d.url});
+
+  node.append("circle")
+      .attr("r", function(d) { return d.r; })
+      .style("fill", function(d) { return color(d.packageName); });
+
+  node.append("text")
+      .attr("dy", ".3em")
+      .style("text-anchor", "middle")
+      .text(function(d) { return d.login; });
+});
+
+// Returns a flattened hierarchy containing all leaf nodes under the root.
+function classes(root) {
+  var classes = [];
+
+  for ( var i = 0, len = root.length; i < len; i++) {
+    var obj = root[i];
+    classes.push({login: obj.login, "avatar_url": obj["avatar url"], value: obj.followers, url: obj.url});
+  }
+
+  /*function recurse(name, node) {
+    if (node.children) node.children.forEach(function(child) { recurse(node.name, child); });
+    else classes.push({packageName: name, className: node.name, value: node.size});
+  }
+
+  recurse(null, root); */
+  return {children: classes};
+}
+
+d3.select(self.frameElement).style("height", diameter + "px");
+
+</script>

@@ -131,6 +131,215 @@ app.get('/correlations', function(req,res){
       res.render('correlations', { token: token})
 })
 
+app.get('/d3', function(req, res){
+
+   //console.log('What the fuck');
+  if (req.session.auth_token == null){
+    //console.log("Logged in!");
+    console.log("Not logged in!");
+
+    res.render('index', {token: null});
+
+  } else {
+
+    var token = req.session.auth_token;
+    var client = github.client(token);
+    var ghme = client.me();
+
+    var network = [];
+    var new_network = [];
+    var repos = [];
+    var seen = {}; // track who we have seen already
+    
+    var me;
+    // get self info so we don't have ourselves in the newtwork later
+    ghme.info(function(err, data, headers){
+      me = data;
+      seen[me.id] = true;
+    });
+
+    getFirstLayer();
+
+    function getFirstLayer(){
+
+      var followers, following, done = 0;
+
+      ghme.followers(function( err, data, headers){
+        if(err) addFirstLayer(err, null, null);
+        followers = data;
+        done++;
+        if ( done === 2 ) 
+          addFirstLayer(null, followers, following);
+      });
+
+      ghme.following(function( err, data, headers){
+        if(err) addFirstLayer(err, null, null);
+        following = data;
+        done++;
+        if ( done === 2 ) 
+          addFirstLayer(null, followers, following);
+      });
+
+      function addFirstLayer(err, followers, following){
+
+        var combined = {};
+
+        for( var i = 0, len = followers.length; i < len; i++){
+          combined[followers[i].id] = followers[i];
+        }
+
+        for( var i = 0, len = following.length; i < len; i++){
+          combined[following[i].id] = following[i];
+        }
+
+        var j = 0;
+
+        for(var key in combined) {
+          if(combined.hasOwnProperty(key)) {
+            seen[key] = true;
+            network[j] = combined[key];
+            network[j].layer = 1;
+            j++;
+          }
+        }
+
+        getSecondLayer();
+
+      }
+
+    }
+
+    var iter = 0;
+
+    function getSecondLayer(){
+
+      async.each(network, function(item, callback){
+        //console.log("Item login: " + item.login);
+        var ghuser = client.user(item.login);
+        ghuser.following(function(err, data, headers){
+            if(err) {
+              console.log("There was an error in the getSecondLayer function");
+              console.log(err);
+              return;
+            } 
+           // console.log(data.login);
+           for( var i = 0, len = data.length; i < len; i++) {
+              if(!seen[data[i].id]) {
+                data[i].layer = 2;
+                new_network.push(data[i]);
+                seen[data[i].id] = true;
+               // console.log("A NEW THING: " + data[i].login);
+              } else {
+                //console.log("I SEEN'T IT!");
+              }
+          }
+          iter++;
+          //console.log(iter);
+          console.log("New Network length: " + new_network.length);
+          callback();
+        });
+        //callback();
+      }, function(err){
+        console.log("New Network size " + new_network.length);
+        processNetwork();
+      });
+
+    }
+
+    function processNetwork(){
+      async.parallel([
+        function(callback) {
+          getFollowerCounts(callback);
+        },
+        function(callback) {
+          console.log("new net count followers");
+          getNewFollowerCounts(callback);
+        },
+        function(callback){
+          getRepos(callback);
+        }],
+      function(err) {
+        done();
+      });
+    }
+
+    function getFollowerCounts(callback){
+
+      console.log(network.length);
+
+      async.each(network, function(item, callback1){
+        var ghuser = client.user(item.login);
+        ghuser.followers(function(err, data, headers){
+            if(err) {
+              console.log("There was an error in the getFollowerCounts function");
+              console.log(err);
+              return;
+            } 
+            var num = data.length;
+            item.followers = num;
+            console.log(item.login + " has " + num + " followers");
+            callback1();
+        });
+
+      }, function(err){
+        callback();
+      });
+
+    }
+
+    function getNewFollowerCounts(callback){
+
+      console.log("Get follower count new network length: " + new_network.length);
+
+      async.each(new_network, function(item, callback1){
+        var ghuser = client.user(item.login);
+        ghuser.followers(function(err, data, headers){
+            if(err) {
+              console.log("There was an error in the getFollowerCounts function");
+              console.log(err);
+              return;
+            } 
+            var num = data.length;
+            item.followers = num;
+            console.log(item.login + " has " + num + " followers");
+            callback1();
+        });
+
+      }, function(err){
+        callback();
+      });
+
+    }
+
+
+
+    function getRepos(callback){
+      async.each(network, function(data, callback1){
+
+        // TODO: only get repos from layer 1
+
+        var ghuser = client.user(data["login"]);  
+        console.log("Getting data for " + data["login"]);
+        ghuser.repos(function(err, data, headers){
+          repos.push(data);
+          callback1();
+        });
+      }, function(err){
+        callback();
+      });
+    }
+
+    function done(){
+      console.log('Finished!');
+      console.log("Network length: " + network.length);
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(network));
+    }
+  }
+
+
+});
+
 app.get('/connections', function(req, res){
   //console.log('What the fuck');
   if (req.session.auth_token == null){
@@ -157,7 +366,8 @@ app.get('/connections', function(req, res){
       seen[me.id] = true;
     });
 
-    getFirstLayer();
+   // getFirstLayer();
+   done();
 
     function getFirstLayer(){
 
@@ -218,7 +428,6 @@ app.get('/connections', function(req, res){
     function getSecondLayer(){
 
       async.each(network, function(item, callback){
-        callback();
         //console.log("Item login: " + item.login);
         var ghuser = client.user(item.login);
         ghuser.following(function(err, data, headers){
@@ -229,23 +438,23 @@ app.get('/connections', function(req, res){
             } 
            // console.log(data.login);
            for( var i = 0, len = data.length; i < len; i++) {
-
               if(!seen[data[i].id]) {
                 data[i].layer = 2;
                 new_network.push(data[i]);
-                console.log("A NEW THING: " + data[i].login);
+                seen[data[i].id] = true;
+               // console.log("A NEW THING: " + data[i].login);
               } else {
-                console.log("I SEEN'T IT!");
+                //console.log("I SEEN'T IT!");
               }
           }
           iter++;
-          console.log(iter);
-          console.log("Network length: " + new_network.length);
-          
+          //console.log(iter);
+          console.log("New Network length: " + new_network.length);
+          callback();
         });
         //callback();
       }, function(err){
-        
+        console.log("New Network size " + new_network.length);
         processNetwork();
       });
 
@@ -255,6 +464,10 @@ app.get('/connections', function(req, res){
       async.parallel([
         function(callback) {
           getFollowerCounts(callback);
+        },
+        function(callback) {
+          console.log("new net count followers");
+          getNewFollowerCounts(callback);
         },
         function(callback){
           getRepos(callback);
@@ -266,11 +479,9 @@ app.get('/connections', function(req, res){
 
     function getFollowerCounts(callback){
 
+      console.log(network.length);
+
       async.each(network, function(item, callback1){
-        if(item.layer === 2) {
-          callback();
-          return;
-        }
         var ghuser = client.user(item.login);
         ghuser.followers(function(err, data, headers){
             if(err) {
@@ -280,6 +491,31 @@ app.get('/connections', function(req, res){
             } 
             var num = data.length;
             item.followers = num;
+            console.log(item.login + " has " + num + " followers");
+            callback1();
+        });
+
+      }, function(err){
+        callback();
+      });
+
+    }
+
+    function getNewFollowerCounts(callback){
+
+      console.log("Get follower count new network length: " + new_network.length);
+
+      async.each(new_network, function(item, callback1){
+        var ghuser = client.user(item.login);
+        ghuser.followers(function(err, data, headers){
+            if(err) {
+              console.log("There was an error in the getFollowerCounts function");
+              console.log(err);
+              return;
+            } 
+            var num = data.length;
+            item.followers = num;
+            console.log(item.login + " has " + num + " followers");
             callback1();
         });
 
